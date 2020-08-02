@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/thanhbinhdoan1993/practice-kuard/pkg/debugprobe"
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/keygen"
 )
 
@@ -21,5 +22,6 @@ type Config struct {
 }
 
 func (k *App) BindConfig(v *viper.Viper, fs *pflag.FlagSet) {
-	// k.kg.
+	k.kg.BindConfig(v, fs)
+	k.live
 }
