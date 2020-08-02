@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -120,5 +121,20 @@ func fileExists(name string) bool {
 }
 
 func (k *App) Run() {
+	r := promMiddleware(loggingMiddleware(k.r))
 
+	// Look to see if we can find TLS certs
+	certFile := filepath.Join(k.c.TLSDir, "kuard.crt")
+	keyFile := filepath.Join(k.c.TLSDir, "kuard.key")
+
+	if fileExists(certFile) && fileExists(keyFile) {
+		go func() {
+			log.Printf("Serving HTTPS on %v", k.c.TLSAddr)
+			log.Fatal(http.ListenAndServeTLS(k.c.TLSAddr, certFile, keyFile, r))
+		}()
+	} else {
+		log.Printf("Could not find certificates to serve TLS")
+	}
+
+	// ........
 }
