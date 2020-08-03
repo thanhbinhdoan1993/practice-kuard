@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/thanhbinhdoan1993/practice-kuard/pkg/sitedata"
 
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/debugprobe"
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/keygen"
@@ -23,5 +24,33 @@ type Config struct {
 
 func (k *App) BindConfig(v *viper.Viper, fs *pflag.FlagSet) {
 	k.kg.BindConfig(v, fs)
-	k.live
+
+	k.live.BindConfig("liveness", v, fs)
+	k.ready.BindConfig("readiness", v, fs)
+
+	fs.Bool("debug", false, "Debug/devel mode")
+	v.BindPFlag("debug", fs.Lookup("debug"))
+	fs.String("debug-sitedata-dir", "./sitedata", "When in debug/dev mode, directory to find the static assets.")
+	v.BindPFlag("debug-sitedata-dir", fs.Lookup("debug-sitedata-dir"))
+	fs.String("address", ":8000", "The address to serve on")
+	v.BindPFlag("address", fs.Lookup("address"))
+	fs.String("tls-address", ":8443", "Address to serve TLS on if certs found.")
+	v.BindPFlag("tls-address", fs.Lookup("tls-address"))
+	fs.String("tls-dir", "/tls", "Directory to look to find TLS certs")
+	v.BindPFlag("tls-dir", fs.Lookup("tls-dir"))
+}
+
+func (k *App) LoadConfig(v *viper.Viper) {
+	err := v.UnmarshalExact(&k.c)
+	if err != nil {
+		panic(err)
+	}
+
+	k.live.SetConfig(k.c.Liveness)
+	k.ready.SetConfig(k.c.Readiness)
+
+	k.kg.LoadConfig(k.c.KeyGen)
+
+	k.tg.SetConfig(k.c.Debug)
+	sitedata.SetConfig(k.c.Debug, k.c.DebugRootDir)
 }

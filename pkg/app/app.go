@@ -11,21 +11,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/thanhbinhdoan1993/practice-kuard/pkg/version"
-
-	"github.com/julienschmidt/httprouter"
-	memqserver "github.com/thanhbinhdoan1993/practice-kuard/pkg/memq/server"
-
-	"github.com/thanhbinhdoan1993/practice-kuard/pkg/keygen"
-
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/debugprobe"
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/dnsapi"
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/env"
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/htmlutils"
+	"github.com/thanhbinhdoan1993/practice-kuard/pkg/keygen"
 	"github.com/thanhbinhdoan1993/practice-kuard/pkg/memory"
+	memqserver "github.com/thanhbinhdoan1993/practice-kuard/pkg/memq/server"
+	"github.com/thanhbinhdoan1993/practice-kuard/pkg/sitedata"
+	"github.com/thanhbinhdoan1993/practice-kuard/pkg/version"
 
 	"github.com/felixge/httpsnoop"
+	"github.com/julienschmidt/httprouter"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func init() {
@@ -136,5 +135,48 @@ func (k *App) Run() {
 		log.Printf("Could not find certificates to serve TLS")
 	}
 
-	// ........
+	log.Printf("Serving on HTTP on %v", k.c.ServerAddr)
+	log.Fatal(http.ListenAndServe(k.c.ServerAddr, r))
+}
+
+func NewApp() *App {
+	k := &App{
+		tg: &htmlutils.TemplateGroup{},
+		r:  httprouter.New(),
+	}
+
+	// Init all of the subcomponents
+
+	router := k.r
+	k.m = memory.New()
+	k.live = debugprobe.New()
+	k.ready = debugprobe.New()
+	k.env = env.New()
+	k.dns = dnsapi.New()
+	k.kg = keygen.New()
+	k.mq = memqserver.NewServer()
+
+	// Add handlers
+	for _, prefix := range []string{"", "/a", "/b", "/c"} {
+		rootHandler := k.getRootHandler(prefix)
+		router.GET(prefix+"/", rootHandler)
+		router.GET(prefix+"/-/*path", rootHandler)
+
+		router.Handler(http.MethodGet, prefix+"/metrics", promhttp.Handler())
+
+		// Add static files
+		sitedata.AddRoutes(router, prefix+"/built")
+		sitedata.AddRoutes(router, prefix+"/static")
+
+		router.Handler(http.MethodGet, prefix+"/fs/*filepath", http.StripPrefix(prefix+"/fs", http.FileServer(http.Dir("/"))))
+
+		k.m.AddRoutes(router, prefix+"/mem")
+		k.live.AddRoutes(router, prefix+"/healthy")
+		k.ready.AddRoutes(router, prefix+"/ready")
+		k.env.AddRoutes(router, prefix+"/env")
+		k.dns.AddRoutes(router, prefix+"/dns")
+		k.kg.AddRoutes(router, prefix+"/keygen")
+		k.mq.AddRoutes(router, prefix+"/memq/server")
+	}
+	return k
 }
