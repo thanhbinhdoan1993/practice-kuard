@@ -1,0 +1,6 @@
+FROM ARG_FROM
+
+ADD bin/ARG_FAKEVER/ARG_ARCH/kuard /kuard
+
+USER nobody:nobody
+CMD ["/kuard"]
