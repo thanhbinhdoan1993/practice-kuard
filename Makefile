@@ -106,6 +106,7 @@ $(BUILD_IMAGE_BUILDSTAMP): build/init_data.sh Dockerfile.build
 		/build/init_data.sh \
 		$(VERBOSE_OUTPUT)
 	echo "$(BUILD_IMAGE)" > $@
+	docker images -q $(BUILD_IMAGE) >> $@
 
 build-env: $(BUILD_IMAGE_BUILDSTAMP)
 	@echo "Launching into build environment"
@@ -167,7 +168,7 @@ BUILDSTAMP_NAME := $(subst /,_,$(CONTAINER_NAME)-$(FAKEVER))
 	@echo "container image tag: $(CONTAINER_NAME):$(FAKEVER)"
 	docker tag $(CONTAINER_NAME):$(VERSION_BASE)-$(FAKEVER) $(CONTAINER_NAME):$(FAKEVER)
 	echo "$(CONTAINER_NAME):$(FAKEVER)" >> $@
-	docker images -q $(CONTAINER_NAME):$(VERSION_BASE)-$(FAKEVER) $(CONTAINER_NAME):$(FAKEVER)
+	docker images -q $(CONTAINER_NAME):$(VERSION_BASE)-$(FAKEVER) $(CONTAINER_NAME):$(FAKEVER) >> $@
 
 .PHONY: images
 images: .$(BUILDSTAMP_NAME)-image
