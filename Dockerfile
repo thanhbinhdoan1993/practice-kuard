@@ -14,7 +14,7 @@ COPY . .
 
 # This is a set of variables that the build script expects
 ENV VERBOSE=0
-ENV PKG=github.com/thanhbinhdoan1993/pratice-kuard
+ENV PKG=github.com/thanhbinhdoan1993/practice-kuard
 ENV ARCH=amd64
 ENV VERSION=test
 
