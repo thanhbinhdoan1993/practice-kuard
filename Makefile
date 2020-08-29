@@ -168,7 +168,7 @@ BUILDSTAMP_NAME := $(subst /,_,$(CONTAINER_NAME)-$(FAKEVER))
 	@echo "container image tag: $(CONTAINER_NAME):$(FAKEVER)"
 	docker tag $(CONTAINER_NAME):$(VERSION_BASE)-$(FAKEVER) $(CONTAINER_NAME):$(FAKEVER)
 	echo "$(CONTAINER_NAME):$(FAKEVER)" >> $@
-	docker images -q $(CONTAINER_NAME):$(VERSION_BASE)-$(FAKEVER) $(CONTAINER_NAME):$(FAKEVER) >> $@
+	docker images -q $(CONTAINER_NAME):$(VERSION_BASE)-$(FAKEVER) >> $@
 
 .PHONY: images
 images: .$(BUILDSTAMP_NAME)-image
