@@ -274,14 +274,17 @@ help:
 	@echo "make targets"
 	@echo 
 	@echo " all, build 		build all binaries"
-	@echo " images			build the containers image"
+	@echo " images			build the container image"
 	@echo " push 			push images to the registry"
 	@echo " clean 			clean up all files and docker volumes/images"
 	@echo " help 			this help message"
 	@echo " version			show package version"
 	@echo 
 	@echo " {build,images,push}-arch-ARCH	do action for specific ARCH"
-	@echo " all-arch-{build,images,push}	do action for all fakevers"
+	@echo " all-arch-{build,images,push}	do action for all arches"
+	@echo 
+	@echo " {build,images,push}-fakever-FAKEVER do action for specific FAKEVER"
+	@echo " all-fakever-{build,images,push} 	do action for all fakevers
 	@echo
 	@echo " all-{build,images,push} 		do action for all arches and all fakevers"
 	@echo
